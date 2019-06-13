@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<!-- HTML5 Hello world by kirupa - http://www.kirupa.com/html5/getting_your_feet_wet_html5_pg1.htm -->
+<html lang="en-us">
+
+<head>
+	<meta charset="utf-8">
+	<title>Tragedy of the Commons</title>
+	<style type="text/css">
+		#mainContent {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: xx-large;
+			font-weight: bold;
+			background-color: #E3F0FB;
+			border-radius: 4px;
+			padding: 10px;
+			text-align: center;
+		}
+
+		.buttonStyle {
+			border-radius: 4px;
+			border: thin solid #F0E020;
+			padding: 5px;
+			background-color: #F8F094;
+			font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+			font-weight: bold;
+			color: #663300;
+			width: 75px;
+		}
+
+		.buttonStyle:hover {
+			border: thin solid #FFCC00;
+			background-color: #FCF9D6;
+			color: #996633;
+			cursor: pointer;
+		}
+
+		.buttonStyle:active {
+			border: thin solid #99CC00;
+			background-color: #F5FFD2;
+			color: #669900;
+			cursor: pointer;
+		}
+
+	</style>
+	
+</head>
+
+<body>
+	<div id="mainContent">
+		<h1>
+			Tragedy of the Commons
+		</h1>
+		<canvas tabindex=0 id="myCanvas" width="500" height="500" style="border:1px solid #000000;">
+			
+		</canvas>
+		
+		<script>
+
+			var c = document.getElementById("myCanvas");
+			var ctx = c.getContext("2d");
+			var time = 10;
+			
+            var fishwidth = 40;
+            var fishheight = 20;
+            var fish = [];
+        	var speeds = [-1.5,-1,1.5];
+        	
+        	var startFishNum = 20;
+        	
+        	var centerText = "aa";
+        	
+        	var fishCaught = 0;
+        	
+        	var roundnum = 0;
+        	
+        	var ybound = 30;
+        	
+        	var running = false;
+
+        	function initFish(num) {
+	        	
+	        	
+	        	for (var i = 0; i < num; i++) {
+	        		var fishx = Math.floor(Math.random()*(c.width-fishwidth));
+	        		var fishy = ybound+Math.floor(Math.random()*(c.height-ybound-fishheight));
+	        		var mx = speeds[Math.floor(Math.random()*speeds.length)];
+	        		var my = speeds[Math.floor(Math.random()*speeds.length)];
+	
+	        		fish[fish.length] = {x:fishx, y:fishy, movex:mx, movey:my, alive:true};
+	        		console.log(fish[i]);
+	        	}
+        	}
+        	var img;
+			
+			function draw() {
+				ctx.clearRect(0, 0, c.width, c.height);
+				ctx.fillStyle = "lightblue";
+            	ctx.fillRect(0, 0, c.width, c.height);
+				drawFish();
+				ctx.fillStyle= "black";
+				ctx.font = "30px Arial";
+				
+				if (centerText.length == 0) {
+					
+					ctx.fillText("Total Fish: " + fish.length, 10, 30);
+					ctx.fillText("Time: " + time, c.width-120, 30);
+					
+				} else {
+					
+					ctx.fillText(centerText, 20, 30);
+				}
+				if (running) {
+					ctx.fillText("Day " + (roundnum+1), (c.width/2)-60, c.height-30);
+				}
+			}
+			
+			img = document.createElement("img");
+			var loaded = false;
+			img.onload = function () {
+				loaded = true;
+			}
+			img.src = "images/fish.png";
+
+			function drawFish() {
+				
+				
+				
+				if (loaded == true) {
+					for (var i = 0; i < fish.length; i++) {
+						if (fish[i].alive) {
+						    ctx.drawImage(img, fish[i].x, fish[i].y, fishwidth, fishheight);
+							
+							if (centerText.length == 0) {
+								if (fish[i].x + fish[i].movex+fishwidth >= c.width || fish[i].x +fish[i].movex <= 0) {
+									fish[i].movex *= -1;
+								}
+								if (fish[i].y + fish[i].movey+fishheight >= c.height || fish[i].y +fish[i].movey <= ybound) {
+									fish[i].movey *= -1;
+								}
+								fish[i].x += fish[i].movex;
+			        			fish[i].y += fish[i].movey;
+							}
+						}
+					}
+					
+				}
+	        	
+			}
+			
+		
+		    
+		
+		// Add event listener for `click` events.
+			window.addEventListener('click', mouseclick, false);
+
+			function mouseclick(event) {
+				var mousex = event.pageX- c.offsetLeft;
+				var mousey = event.pageY- c.offsetTop;
+				var bound =10;
+				if (running) {
+					if (centerText.length == 0) {
+						for (var i = 0; i < fish.length; i++) {
+							if (fish[i].alive) {
+								if (mousex >= fish[i].x-bound &&mousex <= fish[i].x+fishwidth+bound
+								&& mousey >= fish[i].y-bound && mousey <= fish[i].y+fishheight+bound) {
+									fish.splice(i,1);
+									fishCaught++;
+									
+									break;
+									
+								}
+							}
+						}
+						
+						if (fish.length == 0) {
+							time = 0;
+						}
+					}
+				} else {
+					running = true;
+					round();
+				}
+			}
+			
+			function timer() {
+				time -= 1;
+				if (time > 0) {
+					setTimeout(timer, 1000)
+				} else {
+					if (fish.length > 0) {
+						endText();
+					} else {
+						roundEnd();
+					}
+				}
+			}
+			
+			
+			function round() {
+				if (roundnum == 0) {
+					centerText = "You have 10 seconds to catch fish";
+					setTimeout(changeText, 1000);
+				} else {
+					changeText();
+				}
+			}
+			
+			function changeText() {
+				
+				switch (centerText){
+					case "3":
+						centerText = "2";
+						setTimeout(changeText, 1000);
+						break;
+					
+					case "2":
+						centerText = "1";
+						setTimeout(changeText, 1000);
+						break;
+						
+					case "1":
+						centerText = "Begin";
+						if (fish.length == 0) {
+							initFish(startFishNum);
+							
+						}
+						setTimeout(changeText, 500);
+						break;
+						
+					case "Begin":
+						centerText = "";
+						time = 10;
+						timer();
+						break;
+						
+					default:
+						centerText = "3";
+						setTimeout(changeText, 1000);
+						break;
+						
+				}
+				
+				
+				
+				/*
+				if (centerText.length > 2 && centerText != "") {
+					
+
+				} else if (centerText == "3") {
+					
+
+				} else if (centerText == "2") {
+					
+				} else if (centerText == "1") {
+					
+				} else if (centerText.length > 1) {
+					
+				}
+				*/
+			}
+			
+			function endText() {
+				if (centerText.length == 0) {
+					centerText = "Times Up \n Fish Caught: " + fishCaught;
+					setTimeout(endText, 2000);
+				} else {
+					if (fish.length > 0) {
+						initFish(fish.length);
+						centerText = "The fish population has doubled";
+						
+					}
+					setTimeout(roundEnd, 2000);
+				}
+			}
+			
+			function roundEnd() {
+				if (fish.length > 0) {
+					
+					
+					
+					if (roundnum > 0) {
+						//var newFishCaught = fishCaught;
+						//fishCaught /= 2;
+						if (fish.length < fishCaught) {
+							if (fish.length > 3) {
+								fishCaught = fish.length-3;
+							} else {
+								fishCaught = fish.length;
+							}
+							
+							
+						}
+						fish.splice(0, fishCaught);
+						centerText = "Another fisher caught " + fishCaught + " fish";
+						if (fish.length == 0) {
+							setTimeout(roundEnd, 2000);
+						} else {
+							setTimeout(round, 2000);
+							roundnum++;
+						}
+					} else {
+						roundnum++;
+						round();
+					}
+					
+					
+					
+					
+					
+				}else if (fish.length == 0) {
+					centerText = "The fish have been depleted";
+					setTimeout(gameEnd, 1000);
+				}
+				fishCaught = 0;
+			}
+			
+			function startScreen() {
+				running = false;
+				centerText = "Click Anywhere to begin";
+				roundnum = 0;
+				fishCaught = 0;
+			}
+			
+			//drawFish();
+			setInterval(draw, 10);
+			startScreen();
+			
+			function gameEnd() {
+				centerText = "Game Over";
+				setTimeout(startScreen, 2000);
+			}
+			
+			
+			
+			
+		</script>
+	</div>
+	
+
+</body>
+
+</html>
